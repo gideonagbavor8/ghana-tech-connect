@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LinkedIn Connection Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0a0f1e;
+    --ink: #0d1630;
+    --blue: #0077B5;
+    --electric: #00c6ff;
+    --gold: #f5a623;
+    --surface: #111827;
+    --card: #1a2236;
+    --border: #263352;
+    --text: #e8edf5;
+    --muted: #8896b0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,198,255,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 90% 80%, rgba(0,119,181,0.1) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .badge {
+    display: inline-block;
+    background: rgba(0,198,255,0.1);
+    border: 1px solid rgba(0,198,255,0.3);
+    color: var(--electric);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.9rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--electric) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.7rem;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .tab {
+    padding: 0.5rem 1.2rem;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab:hover { border-color: var(--electric); color: var(--electric); }
+
+  .tab.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--electric);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.03em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1rem;
+    max-width: 1000px;
+    margin: 0 auto 2.5rem;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 1.3rem;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--blue), var(--electric));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0,198,255,0.3);
+    box-shadow: 0 8px 30px rgba(0,119,181,0.15);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .avatar {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .card-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+  }
+
+  .card-role {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-weight: 500;
+    background: rgba(0,119,181,0.15);
+    color: #7ac9e8;
+    border: 1px solid rgba(0,119,181,0.2);
+  }
+
+  .tag.gold {
+    background: rgba(245,166,35,0.12);
+    color: #f5c842;
+    border-color: rgba(245,166,35,0.2);
+  }
+
+  .card-why {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+
+  .btn-connect {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-connect:hover {
+    background: #005f94;
+    transform: scale(1.02);
+  }
+
+  .btn-search {
+    background: rgba(0,198,255,0.12);
+    color: var(--electric);
+    border: 1px solid rgba(0,198,255,0.25);
+  }
+
+  .btn-search:hover {
+    background: rgba(0,198,255,0.2);
+  }
+
+  .tips-box {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: rgba(245,166,35,0.07);
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 14px;
+    padding: 1.3rem 1.5rem;
+  }
+
+  .tips-box .section-title {
+    color: var(--gold);
+    border-color: rgba(245,166,35,0.2);
+  }
+
+  .tips-list {
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .tips-list li {
+    font-size: 0.83rem;
+    color: #c9b887;
+    line-height: 1.5;
+    padding-left: 1.3rem;
+    position: relative;
+  }
+
+  .tips-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .category-panel { display: none; }
+  .category-panel.active { display: block; }
+
+  .search-builder {
+    max-width: 1000px;
+    margin: 0 auto 2.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+  }
+
+  .search-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.8rem;
+    align-items: end;
+  }
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  select, input {
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  select:focus, input:focus { border-color: var(--electric); }
+
+  @media (max-width: 600px) {
+    .search-form { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">LinkedIn Strategy</div>
+  <h1>Find Your People</h1>
+  <p>Curated profiles & smart search links to connect with leaders in Education, Software, and AI</p>
+</header>
+
+<!-- Custom Search Builder -->
+<div class="search-builder" style="max-width:1000px;margin:0 auto 2rem;">
+  <div class="section-title">🔍 Build a Custom LinkedIn Search</div>
+  <div class="search-form">
+    <div>
+      <label>Role / Keyword</label>
+      <input type="text" id="roleInput" placeholder="e.g. EdTech Engineer Ghana" value="EdTech Engineer Ghana" />
+    </div>
+    <div>
+      <label>Filter</label>
+      <select id="filterSelect">
+        <option value="">No extra filter</option>
+        <option value="&facetNetwork=%5B%22F%22%2C%22S%22%5D">2nd connections</option>
+        <option value="&facetCurrentCompany=&facetGeoRegion=">Africa region</option>
+      </select>
+    </div>
+    <div>
+      <button class="btn-connect btn-search" onclick="openCustomSearch()" style="padding:0.62rem 1.2rem;width:auto;">Search →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('education', this)">🎓 Education</button>
+  <button class="tab" onclick="showTab('software', this)">💻 Software Dev</button>
+  <button class="tab" onclick="showTab('ai', this)">🤖 AI & ML</button>
+  <button class="tab" onclick="showTab('ghana', this)">🇬🇭 Ghana / Africa</button>
+</div>
+
+<!-- EDUCATION TAB -->
+<div class="category-panel active" id="panel-education">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div class="section-title">🎓 Education Technology Leaders to Connect With</div>
+  </div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(0,119,181,0.15);">👩‍💼</div>
+        <div>
+          <div class="card-name">Sal Khan</div>
+          <div class="card-role">Founder & CEO · Khan Academy</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">EdTech</span><span class="tag">AI in Education</span><span class="tag gold">Influencer</span></div>
+      <div class="card-why">Pioneer of free education for all. His AI tutoring work (Khanmigo) directly aligns with your CurriculumCraft AI vision.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=Sal+Khan+Khan+Academy" target="_blank">🔗 Find on LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(0,198,255,0.1);">👨‍🏫</div>
+        <div>
+          <div class="card-name">EdTech Founders (Ghana)</div>
+          <div class="card-role">Various · Ghana-based Education Startups</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Ghana</span><span class="tag">NaCCA</span><span class="tag gold">Peer Network</span></div>
+      <div class="card-why">Search for founders building education tools for Ghanaian students — perfect peers for collaboration and co-validation.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=edtech+founder+Ghana+education" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(99,179,113,0.15);">🏫</div>
+        <div>
+          <div class="card-name">JHS / STEM Teachers (Ghana)</div>
+          <div class="card-role">Teachers · GES · West Africa</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">GES</span><span class="tag">STEM</span><span class="tag gold">Your Users</span></div>
+      <div class="card-why">Connect with active JHS teachers to validate CurriculumCraft AI and build an early user community — your lived experience makes you credible here.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=JHS+teacher+Ghana+mathematics+ICT" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(160,100,200,0.15);">🌍</div>
+        <div>
+          <div class="card-name">Africa EdTech Community</div>
+          <div class="card-role">Group · 10,000+ Members</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Community</span><span class="tag">Africa</span><span class="tag gold">Network</span></div>
+      <div class="card-why">LinkedIn groups let you engage with hundreds of relevant people. Post about CurriculumCraft to get visibility.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/groups/?keywords=Africa+edtech+education+technology" target="_blank">🔍 Find Groups</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- SOFTWARE TAB -->
+<div class="category-panel" id="panel-software">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div class="section-title">💻 Software Development Professionals</div>
+  </div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(0,119,181,0.15);">⚛️</div>
+        <div>
+          <div class="card-name">Next.js / React Engineers</div>
+          <div class="card-role">Full-Stack Devs · Remote-First Teams</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Next.js</span><span class="tag">React</span><span class="tag">TypeScript</span></div>
+      <div class="card-why">Connect with senior Next.js engineers for mentorship, code review partnerships, and referrals into remote roles.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=Next.js+senior+engineer+remote" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(0,198,255,0.1);">🌐</div>
+        <div>
+          <div class="card-name">African Developers Network</div>
+          <div class="card-role">Community · Pan-African Tech</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Africa</span><span class="tag">Community</span><span class="tag gold">Referrals</span></div>
+      <div class="card-why">Your strongest referral pipeline. African devs in global companies often refer peers — relationships here convert to job leads.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=software+engineer+Ghana+remote+developer" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(245,166,35,0.15);">🔐</div>
+        <div>
+          <div class="card-name">Full-Stack / Security Engineers</div>
+          <div class="card-role">Engineers · Startups & Scale-ups</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">PostgreSQL</span><span class="tag">Node.js</span><span class="tag">Cybersecurity</span></div>
+      <div class="card-why">Your Google Cybersecurity cert + ALX backend score make you competitive here. Connect for collab and job intel.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=full+stack+engineer+cybersecurity+startup" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(100,150,250,0.15);">🎓</div>
+        <div>
+          <div class="card-name">BYU-Idaho Alumni Network</div>
+          <div class="card-role">Alumni · BYU-Idaho Software Programs</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">BYU-Idaho</span><span class="tag">Alumni</span><span class="tag gold">Warm Intro</span></div>
+      <div class="card-why">Fellow BYU-Idaho software grads are the warmest connection you have — shared school = much higher response rate.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=BYU+Idaho+software+developer+engineer" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- AI TAB -->
+<div class="category-panel" id="panel-ai">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div class="section-title">🤖 AI & Machine Learning People to Follow</div>
+  </div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(0,198,255,0.15);">🧠</div>
+        <div>
+          <div class="card-name">AI Product Managers</div>
+          <div class="card-role">PM · AI-first SaaS Companies</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">AI</span><span class="tag">Product</span><span class="tag">LLM</span></div>
+      <div class="card-why">AI PMs bridge engineering and education use cases. Your CurriculumCraft work makes you a compelling connection for them too.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=AI+product+manager+LLM+education" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(200,100,100,0.15);">🤖</div>
+        <div>
+          <div class="card-name">GitHub Copilot / Azure AI Team</div>
+          <div class="card-role">Engineers · Microsoft AI</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Microsoft</span><span class="tag">Azure</span><span class="tag gold">Hackathon</span></div>
+      <div class="card-why">You're building with GitHub Models API for the Microsoft Agents Hackathon — connect with Microsoft AI engineers for visibility.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=Microsoft+AI+engineer+GitHub+Models" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(50,180,100,0.15);">🌍</div>
+        <div>
+          <div class="card-name">AI for Africa Community</div>
+          <div class="card-role">Researchers & Builders · Africa AI</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Africa</span><span class="tag">AI Research</span><span class="tag gold">Community</span></div>
+      <div class="card-why">Masakhane, AI4D Africa, and similar communities are rich with Africa-focused AI researchers who can amplify your work.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=AI+Africa+machine+learning+researcher" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(255,200,50,0.1);">✍️</div>
+        <div>
+          <div class="card-name">LogRocket Network</div>
+          <div class="card-role">Tech Writers & Engineers · LogRocket</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">LogRocket</span><span class="tag">Content</span><span class="tag gold">Your Network</span></div>
+      <div class="card-why">As a Content Advisory Board Member, connecting with other LogRocket contributors opens doors to engineering communities fast.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=LogRocket+engineer+developer+advocate" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- GHANA TAB -->
+<div class="category-panel" id="panel-ghana">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div class="section-title">🇬🇭 Ghana & West Africa Tech Scene</div>
+  </div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(0,119,181,0.15);">🏙️</div>
+        <div>
+          <div class="card-name">Ghana Tech Community</div>
+          <div class="card-role">Engineers & Founders · Accra / Ho</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Ghana</span><span class="tag">Volta Region</span><span class="tag gold">Local Network</span></div>
+      <div class="card-why">Local engineers and founders who understand the market context you're building for — also great for in-person meetups.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=software+engineer+Ghana+Accra+developer" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(50,200,100,0.15);">🌍</div>
+        <div>
+          <div class="card-name">Andela Alumni / Africa Hiring</div>
+          <div class="card-role">Remote Engineers · Pan-Africa</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Remote Work</span><span class="tag">Africa</span><span class="tag">Andela</span></div>
+      <div class="card-why">Andela alumni regularly hire or refer other African engineers into remote roles. A warm lead can bypass the cold application process.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=Andela+engineer+Ghana+Nigeria+remote" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(200,150,50,0.15);">💼</div>
+        <div>
+          <div class="card-name">ALX Africa Alumni</div>
+          <div class="card-role">Engineers · ALX SE Program Grads</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">ALX</span><span class="tag">Africa</span><span class="tag gold">Shared Program</span></div>
+      <div class="card-why">Your ALX Back-End completion is a shared credential — other ALX grads are likely to respond to your connection requests.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=ALX+software+engineering+Africa+graduate" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar" style="background:rgba(100,100,255,0.15);">📊</div>
+        <div>
+          <div class="card-name">Remote-Hiring Tech Recruiters</div>
+          <div class="card-role">Recruiters · Africa-Friendly Companies</div>
+        </div>
+      </div>
+      <div class="card-tags"><span class="tag">Recruiting</span><span class="tag">Remote</span><span class="tag gold">Job Leads</span></div>
+      <div class="card-why">Recruiters at companies like Toptal, Remote.com, and Africa-based startups actively source remote engineers — follow and engage their posts.</div>
+      <a class="btn-connect" href="https://www.linkedin.com/search/results/people/?keywords=tech+recruiter+Africa+remote+engineering+jobs" target="_blank">🔍 Search LinkedIn</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- Tips -->
+<div class="tips-box">
+  <div class="section-title">💡 Connection Message Tips (for higher acceptance)</div>
+  <ul class="tips-list">
+    <li>Mention something specific: "I saw your post on AI in education" or "I'm also a BYU-Idaho software student"</li>
+    <li>Keep it under 3 sentences — LinkedIn limits notes to 300 characters anyway</li>
+    <li>Share a quick credential: "I'm building CurriculumCraft AI for Ghanaian teachers using Next.js + GitHub Models"</li>
+    <li>Don't ask for a job in the connection request — build the relationship first</li>
+    <li>Follow up with a comment on their post within 48 hrs of connecting to stay visible</li>
+    <li>Target 2nd-degree connections first — you share a mutual contact, so acceptance rates are 3–4× higher</li>
+  </ul>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.category-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function openCustomSearch() {
+  const role = document.getElementById('roleInput').value.trim() || 'EdTech Ghana';
+  const filter = document.getElementById('filterSelect').value;
+  const encoded = encodeURIComponent(role);
+  const url = `https://www.linkedin.com/search/results/people/?keywords=${encoded}${filter}`;
+  window.open(url, '_blank');
+}
+</script>
+
+</body>
+</html>
